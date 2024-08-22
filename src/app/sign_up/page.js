@@ -1,16 +1,13 @@
 'use client'
 
-import { auth } from "@/lib/firebase";
-import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
-
 import { useState } from "react";
 import Footer from "@/components/footer";
 import Link from "next/link";
+import {signupWithEmailAndPassword} from "@/lib/firebase-auth";
 
 export default function SignUp() {
     const [name, setName] = useState("");
     const [lastName, setLastName] = useState("");
-    const [userName, setUserName] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
@@ -30,11 +27,7 @@ export default function SignUp() {
         setIsSubmitted(true);
         if (validField() ) {
             try {
-                createUserWithEmailAndPassword(auth, email, password).then((userCredential) => {
-                    updateProfile(auth.currentUser, {
-                        displayName: `${name} ${lastName}`
-                    });
-                });
+                signupWithEmailAndPassword({email, password, name, lastName})
             } catch (error) {
                 const errorCode = error.code;
             }

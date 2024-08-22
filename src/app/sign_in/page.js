@@ -20,7 +20,7 @@ export default function SignIn() {
     const login = () => {
         if (email.length > 0 && password.length > 0) {
                 setLoading(true);
-          loginWithEmailAndPassword(router, {email, password}, setLoading, setError)
+          loginWithEmailAndPassword({router, email, password, setLoading, setError})
         }
     }
 

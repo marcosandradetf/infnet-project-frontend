@@ -3,9 +3,8 @@
 import Account from "@/components/account";
 import AccountInput from "@/components/account_input";
 import {useState} from "react";
-import {auth} from "@/lib/firebase";
-import { sendPasswordResetEmail } from "firebase/auth";
 import {useRouter} from "next/navigation";
+import {resetPassword} from "@/lib/firebase-account";
 
 export default function AccountRecovery() {
     const [email, setEmail] = useState("");
@@ -16,20 +15,7 @@ export default function AccountRecovery() {
 
     function handleKeyPress(e) {
         if (e.key === "Enter") {
-            resetPassword();
-        }
-    }
-
-    function resetPassword() {
-        if (email.length > 0) {
-            sendPasswordResetEmail(auth, email)
-            .then(() => {
-                setSuccess(true);
-            })
-            .catch((error) => {
-                const message = error.message;
-                setError(message)
-            })
+            resetPassword({email, setSuccess, setError});
         }
     }
 
@@ -57,7 +43,7 @@ export default function AccountRecovery() {
                                       placeholder={"Email"} rounded={"rounded-2xl"} height={"h-12"}/>
                         <button
                             className={`w-96 ${email.length > 0 ? "bg-blue-500 hover:bg-blue-400 shadow" : "bg-blue-300 cursor-default"} h-12 rounded-2xl text-white mt-2`}
-                            onClick={resetPassword}>Continuar
+                            onClick={() => resetPassword({email, setSuccess, setError})}>Continuar
                         </button>
                         <p className={"text-red-500"}>{error}</p>
                     </div>

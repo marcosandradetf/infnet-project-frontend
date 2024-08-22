@@ -4,14 +4,13 @@ import Account from "@/components/account";
 import AccountInput from "@/components/account_input";
 import {useEffect, useState} from "react";
 import {useRouter} from "next/navigation";
-
-import {auth} from "@/lib/firebase";
-import { onAuthStateChanged, updatePassword, updateProfile, reauthenticateWithCredential, EmailAuthProvider } from "firebase/auth";
 import { FaLock, FaEdit } from "react-icons/fa";
 import {Alert, Snackbar} from "@mui/material";
 import * as React from "react";
 import BasicModal from "@/components/basic_modal";
 import Loading from "@/components/loading";
+import {reauthenticateCurrentUser, updateAccount} from "@/lib/firebase-account";
+import {verifyLogin} from "@/lib/firebase-auth";
 
 
 export default function MyAccount(){
@@ -54,25 +53,15 @@ export default function MyAccount(){
     const handleOpenModal = () => setOpenModal(true);
     const handleCloseModal = () => setOpenModal(false);
 
-    const [openModalReautenticate, setOpenModalReautenticate] = useState(false);
-    const handleOpenModalReautenticate = () => setOpenModalReautenticate(true);
-    const handleCloseModalReautenticate = () => setOpenModalReautenticate(false);
+    const [openModalReauthenticate, setOpenModalReauthenticate] = useState(false);
+    const handleOpenModalReauthenticate = () => setOpenModalReauthenticate(true);
+    const handleCloseModalReauthenticate = () => setOpenModalReauthenticate(false);
     //
 
     const router = useRouter();
 
     useEffect(() => {
-        return onAuthStateChanged(auth, (user) => {
-            if (user) {
-                setEmail(auth.currentUser.email);
-                setDisplayName(auth.currentUser.displayName);
-                setTimeout(() => {
-                    setLoading(false);
-                }, 1000);
-            } else {
-                router.push("/sign_in");
-            }
-        });
+        return verifyLogin({setEmail, setDisplayName, setLoading, router}, true)
     }, [router]);
 
 
@@ -89,43 +78,17 @@ export default function MyAccount(){
     }
 
     function reauthenticate() {
-        const user = auth.currentUser;
-
-        // TODO(you): prompt the user to re-provide their sign-in credentials
-        // Cria credencial de email com a senha atual do usuário
-        const credential = EmailAuthProvider.credential(user.email, password);
-
-        reauthenticateWithCredential(user, credential).then(() => {
-            setOpenModalReautenticate(false);
-            setOpenModal(true);
-            setError("");
-        }).catch((error) => {
-            setError(error.message);
-        });
+        reauthenticateCurrentUser({password, setOpenModalReauthenticate, setOpenModal, setError});
     }
 
     function handleChange() {
 
 
         if (changeNewPassword && newPassword === confirmNewPassword && newPassword.length > 0 && confirmNewPassword.length > 0) {
-
-            updatePassword(auth.currentUser, newPassword)
-                .then(() => {
-                    setOpenModal(false);
-                })
-                .catch((error) => {
-                    setError(error.message);
-                });
+            updateAccount({newPassword, setOpenModal, setError}, true);           
         } else if (changeDisplayName && name.length > 0 && lastName.length > 0) {
             const newDisplayName = `${name} ${lastName}`;
-            updateProfile(auth.currentUser, { displayName: newDisplayName })
-                .then(() => {
-                    setDisplayName(newDisplayName);
-                    setOpenModal(false);
-                })
-                .catch((error) => {
-                    setError(error.message);
-                });
+            updateAccount({newDisplayName, setDisplayName, setError}, false);
         }
     }
 
@@ -177,7 +140,7 @@ export default function MyAccount(){
                                 setNewPassword("");
                                 setConfirmNewPassword("");
                                 setChangeNewPassword(true);
-                                setOpenModalReautenticate(true);
+                                setOpenModalReauthenticate(true);
                             }}>
                         Alterar Senha
                     </button>
@@ -276,8 +239,8 @@ export default function MyAccount(){
 
 
             <BasicModal
-                handleClose={handleCloseModalReautenticate}
-                open={openModalReautenticate}
+                handleClose={handleCloseModalReauthenticate}
+                open={openModalReauthenticate}
             >
                 <div className="flex flex-col items-center">
                     <h1 className={"mb-5"}>Para continuar insira sua senha atual.</h1>

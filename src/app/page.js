@@ -14,7 +14,7 @@ import {Avatar, ListItemIcon, Menu, MenuItem} from "@mui/material";
 import Logout from '@mui/icons-material/Logout';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import {deepOrange} from "@mui/material/colors";
-import {verifyLogin} from "@/lib/firebase-auth";
+import {logout, verifyLogin} from "@/lib/firebase-auth";
 
 
 export default function Home() {
@@ -37,17 +37,9 @@ export default function Home() {
     const router = useRouter();
 
     useEffect(() => {
-        return verifyLogin(router, setAuthenticated, setUser, setLoading);
+        return verifyLogin({setAuthenticated, setUser, setLoading, router}, false);
     }, [router]);
-
-    function handleSignOut() {
-        auth.signOut();
-        setLoading(true);
-        setTimeout(() => {
-            router.push("/sign_in");
-        }, 1000);
-    }
-
+    
     if (loading) {
         return (
             <Loading />
@@ -83,7 +75,7 @@ export default function Home() {
                             </ListItemIcon>
                             Minha Conta
                         </MenuItem>
-                        <MenuItem onClick={handleSignOut}>
+                        <MenuItem onClick={() => logout({setLoading, router})}>
                             <ListItemIcon>
                                 <Logout fontSize="medium" />
                             </ListItemIcon>
@@ -94,7 +86,7 @@ export default function Home() {
 
 
                 <p>{user}</p>
-                <div className="grid_sidebar_out cursor-pointer" onClick={handleSignOut}>
+                <div className="grid_sidebar_out cursor-pointer" onClick={() => logout({setLoading, router})}>
                     <GoSignOut/>
                 </div>
 
